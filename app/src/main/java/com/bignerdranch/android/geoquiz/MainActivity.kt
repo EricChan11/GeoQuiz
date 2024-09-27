@@ -23,7 +23,11 @@ class MainActivity : AppCompatActivity() {
         Question(R.string.question_africa, false),
         Question(R.string.question_americas, true),
         Question(R.string.question_asia, true))
+    private var isAnswer = BooleanArray(questionBank.size) { false }
+
     private var currentIndex = 0
+    private var count = 0
+    private var right = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate(Bundle?) called")
@@ -35,16 +39,35 @@ class MainActivity : AppCompatActivity() {
         questionTextView = findViewById(R.id.question_text_view)
 
 
-        trueButton.setOnClickListener { view: View ->
-            checkAnswer(true)
+        trueButton.setOnClickListener {
+            if(!isAnswer[currentIndex]) {
+                isAnswer[currentIndex]=true
+                checkAnswer(true)
+                trueButton.isEnabled=false
+                falseButton.isEnabled=false
+            }
+
 
         }
-        falseButton.setOnClickListener { view: View ->
-            checkAnswer(false)
+        falseButton.setOnClickListener {
+            if(!isAnswer[currentIndex]) {
+                isAnswer[currentIndex]=true
+                checkAnswer(false)
+                trueButton.isEnabled=false
+                falseButton.isEnabled=false
+            }
 
         }
         nextButton.setOnClickListener {
             currentIndex = (currentIndex + 1) % questionBank.size
+            if(isAnswer[currentIndex]) {
+                trueButton.isEnabled=false
+                falseButton.isEnabled=false
+            }
+            else{
+                trueButton.isEnabled=true
+                falseButton.isEnabled=true
+            }
             updateQuestion()
         }
         updateQuestion()
@@ -55,13 +78,22 @@ class MainActivity : AppCompatActivity() {
     }
     private fun checkAnswer(userAnswer: Boolean) {
         val correctAnswer = questionBank[currentIndex].answer
-        val messageResId = if (userAnswer == correctAnswer) {
-            R.string.correct_toast
+        count++
+        var messageResId = 0
+        if (userAnswer == correctAnswer) {
+            messageResId=R.string.correct_toast
+            right++
         } else {
-            R.string.incorrect_toast
+            messageResId=R.string.incorrect_toast
         }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
             .show()
+        if(count==questionBank.size){
+            val percentage = (right.toDouble() / count * 100).toInt()  // 计算正确率，转换为整数
+            val resultMessage = "You got $right out of $count questions correct ($percentage%)."
+            // 显示正确率结果
+            Toast.makeText(this, resultMessage, Toast.LENGTH_LONG).show()
+        }
     }
     override fun onStart() {
         super.onStart()
