@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProviders
 
 private const val TAG = "MainActivity"
 private const val KEY_INDEX = "index"
+private const val REMAINING_TIME = "times"
 private const val REQUEST_CODE_CHEAT = 0
 
 
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nextButton: Button
     private lateinit var questionTextView: TextView
     private lateinit var cheatButton: Button
-
+    private lateinit var timeText:TextView
     private val quizViewModel: QuizViewModel by lazy {
         ViewModelProviders.of(this).get(QuizViewModel::class.java)
     }
@@ -33,15 +34,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val currentIndex = savedInstanceState?.getInt(KEY_INDEX, 0) ?: 0
+        val currentTime = savedInstanceState?.getInt(REMAINING_TIME,3)?: 3
         quizViewModel.currentIndex = currentIndex
+        quizViewModel.remainTime = currentTime
 
+        timeText=findViewById(R.id.times)
+        timeText.text="${quizViewModel.remainTime}"
         trueButton = findViewById(R.id.true_button)
         falseButton = findViewById(R.id.false_button)
         nextButton = findViewById(R.id.next_button)
         cheatButton = findViewById(R.id.cheat_button)
         questionTextView = findViewById(R.id.question_text_view)
 
-
+        cheatButton.isEnabled= quizViewModel.remainTime > 0
         trueButton.setOnClickListener { view: View ->
             checkAnswer(true)
 
@@ -57,6 +62,9 @@ class MainActivity : AppCompatActivity() {
         cheatButton.setOnClickListener {
             val answerIsTrue = quizViewModel.currentQuestionAnswer
             val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
+            quizViewModel.reduceTime()
+            timeText.text="${quizViewModel.remainTime}"
+            cheatButton.isEnabled= quizViewModel.remainTime > 0
             startActivityForResult(intent, REQUEST_CODE_CHEAT)
         }
         updateQuestion()
@@ -92,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(savedInstanceState)
         Log.i(TAG, "onSaveInstanceState")
         savedInstanceState.putInt(KEY_INDEX, quizViewModel.currentIndex)
+        savedInstanceState.putInt(REMAINING_TIME,quizViewModel.remainTime)
     }
     override fun onStop() {
         super.onStop()

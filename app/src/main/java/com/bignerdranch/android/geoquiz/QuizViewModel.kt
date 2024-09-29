@@ -13,6 +13,7 @@ class QuizViewModel : ViewModel() {
         Question(R.string.question_americas, true),
         Question(R.string.question_asia, true))
     var currentIndex = 0
+    var remainTime = 3
     var isCheater = false
     val currentQuestionAnswer: Boolean
         get() = questionBank[currentIndex].answer
@@ -20,5 +21,10 @@ class QuizViewModel : ViewModel() {
         get() = questionBank[currentIndex].textResId
     fun moveToNext() {
         currentIndex = (currentIndex + 1) % questionBank.size
+    }
+    fun reduceTime(){
+        if(remainTime!=0){
+            remainTime--
+        }
     }
 }
